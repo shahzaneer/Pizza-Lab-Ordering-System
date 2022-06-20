@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdlib.h>
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -81,172 +82,6 @@ walkingCustomer *currentWalkingCustomer = NULL;
 dineInCustomer *currentDineInCustomer = NULL;
 homeDeliveryCustomer *currentHomeDeliveryCustomer = NULL;
 
-// Now defining Order Placing and Serving of Walking Customer
-// Based on : Older person will be served first (PRIORITY QUEUE)
-
-void placeOrderWalkingCustomer(int age, string name, string pizzaName, int quantity, double bill)
-{
-    // making new Customer
-    currentWalkingCustomer = new walkingCustomer(age, name, quantity, pizzaName, bill);
-
-    if (myPizzaShop->nextWalkingCustomer == NULL)
-    {
-        // if first then insert in front
-        myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
-    }
-    else
-    {
-        // finding the last Node
-        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
-        while (temp->next != NULL)
-        {
-            temp = temp->next;
-        }
-
-        if (temp->cusotomer.age < currentWalkingCustomer->cusotomer.age)
-        {
-            // insert at front
-            walkingCustomer *firstCustomer = myPizzaShop->nextWalkingCustomer;
-            myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
-            currentWalkingCustomer->next = firstCustomer;
-        }
-        else
-        {
-            // insert at end
-            temp->next = currentWalkingCustomer;
-            currentWalkingCustomer->next = NULL;
-        }
-    }
-}
-void serveOrderWalkingCustomer()
-{
-    if (myPizzaShop->nextWalkingCustomer == NULL)
-    {
-        cout << "No Walking Customer to Serve" << endl;
-    }
-    else
-    {
-        // serving the first customer
-        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
-        myPizzaShop->nextWalkingCustomer = temp->next;
-        cout << "Walking Customer Served : " << temp->cusotomer.name << endl;
-        delete temp; // deleting the customer
-    }
-}
-
-// Now defining Order Placing and Serving of Dine-In Customer
-// Based on : First Come First Served (FIFO) (QUEUE)
-
-void placeOrderDineInCustomer(int age, string name, string pizzaName, int quantity, double bill)
-{
-    // making new Customer
-    currentDineInCustomer = new dineInCustomer(age, name, quantity, pizzaName, bill);
-
-    if (myPizzaShop->nextDineInCustomer == NULL)
-    {
-        // if first insert in front
-        myPizzaShop->nextDineInCustomer = currentDineInCustomer;
-    }
-    else
-    {
-        // finding the last Node
-        dineInCustomer *temp = myPizzaShop->nextDineInCustomer;
-        while (temp->next != NULL)
-        {
-            temp = temp->next;
-        }
-
-        temp->next = currentDineInCustomer;
-        currentDineInCustomer->next = NULL;
-    }
-}
-void serveOrderDineInCustomer()
-{
-    if (myPizzaShop->nextDineInCustomer == NULL)
-    {
-        cout << "No Dine-In Customer to Serve" << endl;
-    }
-    else
-    {
-        // serving the first customer
-        dineInCustomer *temp = myPizzaShop->nextDineInCustomer;
-        myPizzaShop->nextDineInCustomer = temp->next;
-        cout << "Dine-In Customer Served : " << temp->cusotomer.name << endl;
-        delete temp; // deleting the customer
-    }
-}
-
-// Now defining Order Placing and Serving of Home Delivery Customer
-// Based on : (when all orders are ready)(LIFO)(Stack)
-
-void placeOrderHomeDeliveryCustomer(int age, string name, string pizzaName, int quantity, double bill, string address)
-{
-    // making new Customer
-    currentHomeDeliveryCustomer = new homeDeliveryCustomer(age, name, quantity, pizzaName, bill, address);
-
-    if (myPizzaShop->nextHomeDeliveryCustomer == NULL)
-    {
-        // if first insert in front
-        myPizzaShop->nextHomeDeliveryCustomer = currentHomeDeliveryCustomer;
-    }
-    else
-    {
-        // finding the last Node
-        homeDeliveryCustomer *temp = myPizzaShop->nextHomeDeliveryCustomer;
-        while (temp->next != NULL)
-        {
-            temp = temp->next;
-        }
-
-        temp->next = currentHomeDeliveryCustomer;
-        currentHomeDeliveryCustomer->next = NULL;
-    }
-}
-
-void serveOrderHomeDeliveryCustomer()
-{
-    if (myPizzaShop->nextHomeDeliveryCustomer == NULL)
-    {
-        cout << "No Home Delivery Customer to Serve" << endl;
-    }
-    else
-    {
-        // serving the last customer first
-        homeDeliveryCustomer *previous = myPizzaShop->nextHomeDeliveryCustomer;
-        homeDeliveryCustomer *temp = NULL;
-
-        while (previous->next->next != NULL)
-        {
-            previous = previous->next;
-        }
-
-        temp = previous->next;
-
-        previous->next = NULL;
-        cout << "Home Delivery Customer Served : " << temp->cusotomer.name << endl;
-        delete temp; // deleting the customer
-    }
-}
-
-// It will serve all the waiting orders
-
-void serveAllOrders()
-{
-
-    while (myPizzaShop->nextWalkingCustomer != NULL)
-    {
-        serveOrderWalkingCustomer();
-    }
-    while (myPizzaShop->nextDineInCustomer != NULL)
-    {
-        serveOrderDineInCustomer();
-    }
-    while (myPizzaShop->nextHomeDeliveryCustomer != NULL)
-    {
-        serveOrderHomeDeliveryCustomer();
-    }
-}
-
 // In case of Serving , to keep the record of Customers Served, implementing AVL Tree
 // to search the record of Customers by Name
 // It can also Display all the customers Served
@@ -300,13 +135,13 @@ void display(servedCustomer *root)
 
 // Traversal for the served Customers
 
-void traversal(servedCustomer *root)
+void displayAllServedOrders(servedCustomer *root)
 {
     if (root)
     {
-        traversal(root->left);
+        displayAllServedOrders(root->left);
         display(root); // will display all the served Customers
-        traversal(root->right);
+        displayAllServedOrders(root->right);
     }
 }
 
@@ -576,6 +411,273 @@ servedCustomer *deleteNode(servedCustomer *root, string keyName)
     return root; // in case there is no need of rotation
 }
 
+
+// Now defining Order Placing and Serving of Walking Customer
+// Based on : Older person will be served first (PRIORITY QUEUE)
+
+void placeOrderWalkingCustomer(int age, string name, string pizzaName, int quantity, double bill)
+{
+    // making new Customer
+    currentWalkingCustomer = new walkingCustomer(age, name, quantity, pizzaName, bill);
+
+    if (myPizzaShop->nextWalkingCustomer == NULL)
+    {
+        // if first then insert in front
+        myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
+    }
+    else
+    {
+        // finding the last Node
+        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
+        while (temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+
+        if (temp->cusotomer.age < currentWalkingCustomer->cusotomer.age)
+        {
+            // insert at front
+            walkingCustomer *firstCustomer = myPizzaShop->nextWalkingCustomer;
+            myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
+            currentWalkingCustomer->next = firstCustomer;
+        }
+        else
+        {
+            // insert at end
+            temp->next = currentWalkingCustomer;
+            currentWalkingCustomer->next = NULL;
+        }
+    }
+    cout << "Your Order has been Placed MR/MRS " << name << " and your order is " << pizzaName << " with " << quantity << " quantity and total bill is " << bill << endl;
+}
+void serveOrderWalkingCustomer()
+{
+    if (myPizzaShop->nextWalkingCustomer == NULL)
+    {
+        cout << "No Walking Customer to Serve" << endl;
+    }
+    else
+    {
+        // serving the first customer
+        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
+        myPizzaShop->nextWalkingCustomer = temp->next;
+        cout << "Walking Customer Served : " << temp->cusotomer.name << endl;
+
+        // Now before deleting the node we need to update the servedCustomer Tree
+        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, root);
+
+        delete temp; // deleting the customer
+    }
+}
+
+// Now defining Order Placing and Serving of Dine-In Customer
+// Based on : First Come First Served (FIFO) (QUEUE)
+
+void placeOrderDineInCustomer(int age, string name, string pizzaName, int quantity, double bill)
+{
+    // making new Customer
+    currentDineInCustomer = new dineInCustomer(age, name, quantity, pizzaName, bill);
+
+    if (myPizzaShop->nextDineInCustomer == NULL)
+    {
+        // if first insert in front
+        myPizzaShop->nextDineInCustomer = currentDineInCustomer;
+    }
+    else
+    {
+        // finding the last Node
+        dineInCustomer *temp = myPizzaShop->nextDineInCustomer;
+        while (temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+
+        temp->next = currentDineInCustomer;
+        currentDineInCustomer->next = NULL;
+    }
+    cout << "Your Order has been Placed MR/MRS " << name << " and your order is " << pizzaName << " with " << quantity << " quantity and total bill is " << bill << endl;
+}
+void serveOrderDineInCustomer()
+{
+    if (myPizzaShop->nextDineInCustomer == NULL)
+    {
+        cout << "No Dine-In Customer to Serve" << endl;
+    }
+    else
+    {
+        // serving the first customer
+        dineInCustomer *temp = myPizzaShop->nextDineInCustomer;
+        myPizzaShop->nextDineInCustomer = temp->next;
+        cout << "Dine-In Customer Served : " << temp->cusotomer.name << endl;
+
+        // Now before deleting the node we need to update the servedCustomer Tree
+        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, root);
+
+        delete temp; // deleting the customer
+    }
+}
+
+// Now defining Order Placing and Serving of Home Delivery Customer
+// Based on : (when all orders are ready)(LIFO)(Stack)
+
+void placeOrderHomeDeliveryCustomer(int age, string name, string pizzaName, int quantity, double bill, string address)
+{
+    // making new Customer
+    currentHomeDeliveryCustomer = new homeDeliveryCustomer(age, name, quantity, pizzaName, bill, address);
+
+    if (myPizzaShop->nextHomeDeliveryCustomer == NULL)
+    {
+        // if first insert in front
+        myPizzaShop->nextHomeDeliveryCustomer = currentHomeDeliveryCustomer;
+    }
+    else
+    {
+        // finding the last Node
+        homeDeliveryCustomer *temp = myPizzaShop->nextHomeDeliveryCustomer;
+        while (temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+
+        temp->next = currentHomeDeliveryCustomer;
+        currentHomeDeliveryCustomer->next = NULL;
+    }
+    cout << "Your Order has been Placed MR/MRS " << name << " and your order is " << pizzaName << " with " << quantity << " quantity and total bill is " << bill << endl;
+}
+
+void serveOrderHomeDeliveryCustomer()
+{
+    if (myPizzaShop->nextHomeDeliveryCustomer == NULL)
+    {
+        cout << "No Home Delivery Customer to Serve" << endl;
+    }
+    else
+    {
+        // serving the last customer first
+        homeDeliveryCustomer *previous = myPizzaShop->nextHomeDeliveryCustomer;
+        homeDeliveryCustomer *temp = NULL;
+
+        while (previous->next->next != NULL)
+        {
+            previous = previous->next;
+        }
+
+        temp = previous->next;
+
+        previous->next = NULL;
+        cout << "Home Delivery Customer Served : " << temp->cusotomer.name << endl;
+
+        // Now before deleting the node we need to update the servedCustomer Tree
+        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, root);
+        
+        delete temp; // deleting the customer
+    }
+}
+
+// It will serve all the waiting orders
+
+void serveAllOrders()
+{
+
+    while (myPizzaShop->nextWalkingCustomer != NULL)
+    {
+        serveOrderWalkingCustomer();
+    }
+    while (myPizzaShop->nextDineInCustomer != NULL)
+    {
+        serveOrderDineInCustomer();
+    }
+    while (myPizzaShop->nextHomeDeliveryCustomer != NULL)
+    {
+        serveOrderHomeDeliveryCustomer();
+    }
+}
+
+void displayAllOrdersWalkingCustomers(){
+    if(myPizzaShop->nextWalkingCustomer == NULL){
+        cout << "There is no Order for Walking Customer till yet" << endl;
+    }
+    else{
+        walkingCustomer *traversal = myPizzaShop->nextWalkingCustomer;
+        while(traversal != NULL){
+
+            cout << "-----------------------------------------------------" << endl;
+            cout << "Walking Customer : " << traversal->cusotomer.name << endl;
+            cout << "Age : " << traversal->cusotomer.age << endl;
+            cout << "Pizza Name : " << traversal->cusotomer.pizzaName << endl;
+            cout << "Quantity : " << traversal->cusotomer.quantity << endl;
+            cout << "Bill : " << traversal->cusotomer.bill <<" RS/_"<< endl;
+            cout << "-----------------------------------------------------" << endl;
+
+            traversal = traversal->next;
+        }
+    }
+}
+
+void displayAllOrdersHomeDeliveryCustomers(){
+    if (myPizzaShop->nextHomeDeliveryCustomer == NULL)
+    {
+        cout << "There is no Order for Home Delivery Customer till yet" << endl;
+    }
+    else
+    {
+        homeDeliveryCustomer *traversal = myPizzaShop->nextHomeDeliveryCustomer;
+        while (traversal != NULL)
+        {
+            cout << "-----------------------------------------------------" << endl;
+            cout << "Walking Customer : " << traversal->cusotomer.name << endl;
+            cout << "Age : " << traversal->cusotomer.age << endl;
+            cout << "Pizza Name : " << traversal->cusotomer.pizzaName << endl;
+            cout << "Quantity : " << traversal->cusotomer.quantity << endl;
+            cout << "Bill : " << traversal->cusotomer.bill << " RS/_" << endl;
+            cout << "Address : " << traversal->address << endl;
+            cout << "-----------------------------------------------------" << endl;
+
+            traversal = traversal->next;
+        }
+    }
+}
+
+void displayAllOrdersDineInCustomers(){
+    if (myPizzaShop->nextDineInCustomer == NULL)
+    {
+        cout << "There is no Order for Dine-In Customer till yet" << endl;
+    }
+    else
+    {
+        dineInCustomer *traversal = myPizzaShop->nextDineInCustomer;
+        while (traversal != NULL)
+        {
+            cout << "-----------------------------------------------------" << endl;
+            cout << "Walking Customer : " << traversal->cusotomer.name << endl;
+            cout << "Age : " << traversal->cusotomer.age << endl;
+            cout << "Pizza Name : " << traversal->cusotomer.pizzaName << endl;
+            cout << "Quantity : " << traversal->cusotomer.quantity << endl;
+            cout << "Bill : " << traversal->cusotomer.bill << " RS/_" << endl;
+            cout << "-----------------------------------------------------" << endl;
+
+            traversal = traversal->next;
+        }
+    }
+}
+
+void displayAllOrders(){
+
+    cout << "The Walk-IN Customers Are :" << endl;
+    displayAllOrdersWalkingCustomers();
+
+    cout << "The Dine-IN Customers Are :" << endl;
+    displayAllOrdersDineInCustomers();
+
+    cout << "The Home Delivery Customers Are :" << endl;
+    displayAllOrdersHomeDeliveryCustomers();
+
+}
+
+
+
+
+
 int main()
 {
     // making pizza shop
@@ -588,7 +690,7 @@ int main()
     myPizzaShop->address = "Liberty Chowk, Lahore";
 
     // Setting the menu
-    myPizzaShop->menu = new string[10]{
+    myPizzaShop->menu = new string[11]{"",
         "chickenTikka", "arabicRanch",
         "chickenFajita", "cheeseLover",
         "chickenSupreme", "allveggie",
@@ -597,7 +699,175 @@ int main()
 
     // setting the price
 
-    myPizzaShop->price = new int[10]{2000, 2500, 2400, 2200, 2700, 2000, 2100, 3000, 3000, 2800};
+    myPizzaShop->price = new int[11]{0,2000, 2500, 2400, 2200, 2700, 2000, 2100, 3000, 3000, 2800};
+
+    int option = -99;
+
+    // now starting the main program
+    do{
+
+        cout << "-------------------------------------------------------------------------" << endl;
+        cout << "---------------------------------"<<myPizzaShop->shopName <<"------------------------------" << endl;
+        cout << "-------------------------------------------------------------------------" << endl;
+        cout << "-------------------------------------------------------------------------" << endl;
+
+        cout << "Located at " << myPizzaShop->address << endl;
+        cout << "Our Menu is as follows: " << endl;
+        for (int i = 1; i<=10; i++)
+        {
+            cout << i << ". " << myPizzaShop->menu[i] << " - " << myPizzaShop->price[i] << endl;
+        }
+
+        cout << "-------------------------------------------------------------------------" << endl;
+        cout << "---------------------------------Operations------------------------------" << endl;
+        cout << "-------------------------------------------------------------------------" << endl;
+        cout << "-------------------------------------------------------------------------" << endl;
+
+        // Order placing
+        cout << "1. Place order for Walk-in Customer" << endl;
+        cout << "2. Place order for Home Delivery Customer" << endl;
+        cout << "3. Place order for Dine-In Customer" << endl;
+
+        // order serving
+        cout << "4. Serve order for Walk-in Customer" << endl;
+        cout << "5. Serve order for Home Delivery Customer" << endl;
+        cout << "6. Serve order for Dine-In Customer" << endl;
+        cout << "7. Serve All Orders " << endl;
+
+        // Displaying orders
+        cout << "8. Display all orders of Walk in Customers" << endl;
+        cout << "9. Display all orders of Home Delivery Customers" << endl;
+        cout << "10. Display all orders of Dine-In Customers" << endl;
+        cout << "11. Display all orders of all Customers" << endl;
+
+        // Served orders
+        cout << "12. Display all served Orders" << endl;
+        cout << "13. Search Served Orders " << endl;
+        cout << "0.  EXIT " << endl;
+
+        cout << "Enter your choice: ";
+
+        cin >> option;
+
+        // for taking input of Customer Details
+        int age, quantity, pizzaIndex;
+        double bill;
+        string address;
+        string name;
+
+        switch (option)
+        {
+            case 1:
+                // placing order for walk-in customer
+                cout << "Enter the name of the customer: ";
+                cin >> name;
+                cout << "Enter the age of the customer: ";
+                cin >> age;
+                cout << "Enter the quantity of the pizza: ";
+                cin >> quantity;
+                cout << "Enter the option for the pizza: ";
+                cin >> pizzaIndex;
+
+                bill = quantity * myPizzaShop->price[pizzaIndex];
+                placeOrderWalkingCustomer(age,name,myPizzaShop->menu[pizzaIndex],quantity,bill);
+                break;
+
+            case 2:
+
+                // placing order for Home Delivery customer
+                cout << "Enter the name of the customer: ";
+                cin >> name;
+                cout << "Enter the age of the customer: ";
+                cin >> age;
+                cout << "Enter the quantity of the pizza: ";
+                cin >> quantity;
+                cout << "Enter the option for the pizza: ";
+                cin >> pizzaIndex;
+                cout << "Enter the address of the customer: ";
+                cin >> address;
+
+                bill = quantity * myPizzaShop->price[pizzaIndex];
+                placeOrderHomeDeliveryCustomer(age,name,myPizzaShop->menu[pizzaIndex],quantity,bill ,address);
+                break;
+
+            case 3:
+                // placing order for Dine-in customer
+
+                cout << "Enter the name of the customer: ";
+                cin >> name;
+                cout << "Enter the age of the customer: ";
+                cin >> age;
+                cout << "Enter the quantity of the pizza: ";
+                cin >> quantity;
+                cout << "Enter the option for the pizza: ";
+                cin >> pizzaIndex;
+
+                bill = quantity * myPizzaShop->price[pizzaIndex];
+                placeOrderDineInCustomer(age,name,myPizzaShop->menu[pizzaIndex],quantity,bill);
+                break;
+
+            case 4:
+                // serving order for walk-in customer
+                serveOrderWalkingCustomer();
+                break;
+
+            case 5:
+                // serving order for Home Delivery customer
+                serveOrderHomeDeliveryCustomer();
+
+                break;
+
+            case 6:
+                // serving order for Dine-in customer
+                serveOrderDineInCustomer();
+                break;
+
+            case 7:
+                // serving all orders
+                serveAllOrders();
+                break;
+
+            case 8:
+                // displaying all orders of walk-in customers
+                displayAllOrdersWalkingCustomers();
+                break;
+
+            case 9:
+                // displaying all orders of Home Delivery customers
+                displayAllOrdersHomeDeliveryCustomers();
+                break;
+
+            case 10:
+                // displaying all orders of Dine-in customers
+                displayAllOrdersDineInCustomers();
+                break;
+
+            case 11:
+                // displaying all orders of all customers
+                displayAllOrders();
+                break;
+
+            case 12:
+                // displaying all served orders
+                displayAllServedOrders(root);
+                break;
+            case 13:
+                // searching served orders
+                cout << "Enter the name of the customer you want to search: "<<endl;
+                cin >> name;
+                servedCustomer *searchedCustomer =  search(root, name);
+                if(searchedCustomer == NULL)
+                    cout << "No such Customer was Served " << endl;
+                else 
+                    display(searchedCustomer);
+                break;
+
+        }
+
+    } while (option != 0);
+
+    cout << "Pizza Order Management System -- Terminated"<<endl;
+    cout << "Thank you for Using our Services " << endl;
 
     return 0;
 }
