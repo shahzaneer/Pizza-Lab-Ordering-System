@@ -82,6 +82,9 @@ walkingCustomer *currentWalkingCustomer = NULL;
 dineInCustomer *currentDineInCustomer = NULL;
 homeDeliveryCustomer *currentHomeDeliveryCustomer = NULL;
 
+// Globally declaring the variables for the total of all the orders
+double total, walking, dineIn, homeDelivery;
+
 // In case of Serving , to keep the record of Customers Served, implementing AVL Tree
 // to search the record of Customers by Name
 // It can also Display all the customers Served
@@ -569,7 +572,7 @@ void serveOrderHomeDeliveryCustomer()
 
         // Now before deleting the node we need to update the servedCustomer Tree
         root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, root);
-        
+
         delete temp; // deleting the customer
     }
 }
@@ -674,7 +677,29 @@ void displayAllOrders(){
 
 }
 
+void earnings(){
+    walkingCustomer *p = myPizzaShop->nextWalkingCustomer;
+    while(p != NULL){
+        walking += p->cusotomer.bill;
+        p = p->next;
+    }
+    dineInCustomer *q = myPizzaShop->nextDineInCustomer;
+    while(q != NULL){
+        dineIn += q->cusotomer.bill;
+        q = q -> next;
+    }
+    homeDeliveryCustomer *r = myPizzaShop->nextHomeDeliveryCustomer;
+    while(r != NULL){
+        homeDelivery += r->cusotomer.bill;
+        r = r->next;
+    }
+    total = walking + dineIn + homeDelivery;
 
+    cout << "The total Earning by Walk-In customers are : "<< walking << " RS/_" << endl;
+    cout << "The total Earning by Dine-In customers are : "<< dineIn << " RS/_" << endl;
+    cout << "The total Earning by Home Delivery customers are : "<< homeDelivery << " RS/_" << endl;
+    cout << "The Total Earnings Are : " << total << " RS/_" << endl;
+}
 
 
 
@@ -743,6 +768,7 @@ int main()
         // Served orders
         cout << "12. Display all served Orders" << endl;
         cout << "13. Search Served Orders " << endl;
+        cout << "14. Display total earnings of Shop" << endl;
         cout << "0.  EXIT " << endl;
 
         cout << "Enter your choice: ";
