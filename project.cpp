@@ -24,19 +24,46 @@ struct walkingCustomer
 {
     customer cusotomer;
     walkingCustomer *next = NULL;
+
+    walkingCustomer(int age, string name, int quantity, string pizzaName, double bill)
+    {
+        cusotomer.age = age;
+        cusotomer.name = name;
+        cusotomer.order.quantity = quantity;
+        cusotomer.order.pizzaName = pizzaName;
+        cusotomer.order.bill = bill;
+    }
 };
 
 struct dineInCustomer
 {
     customer cusotomer;
     dineInCustomer *next = NULL;
+
+    dineInCustomer(int age, string name, int quantity, string pizzaName, double bill)
+    {
+        cusotomer.age = age;
+        cusotomer.name = name;
+        cusotomer.order.quantity = quantity;
+        cusotomer.order.pizzaName = pizzaName;
+        cusotomer.order.bill = bill;
+    }
 };
 
-struct homeDeliveryCustomer
-{
+
+struct homeDeliveryCustomer{
     customer cusotomer;
     string address;
     struct homeDeliveryCustomer *next = NULL;
+
+    homeDeliveryCustomer(int age, string name, int quantity, string pizzaName, double bill, string address)
+    {
+        cusotomer.age = age;
+        cusotomer.name = name;
+        cusotomer.order.quantity = quantity;
+        cusotomer.order.pizzaName = pizzaName;
+        cusotomer.order.bill = bill;
+        this->address = address;
 };
 
 struct PizzaShop
@@ -61,24 +88,136 @@ homeDeliveryCustomer *currentHomeDeliveryCustomer = NULL;
 
 // Now defining Order Placing and Serving of Walking Customer
 // Based on : Older person will be served first (PRIORITY QUEUE)
-void placeOrderWalkingCustomer();
-void serveOrderWalkingCustomer();
+
+void placeOrderWalkingCustomer(int age , string name , string pizzaName , int quantity , double bill){
+    // making new Customer
+    currentWalkingCustomer = new walkingCustomer(age, name, quantity, pizzaName, bill);
+
+    if(myPizzaShop->nextWalkingCustomer == NULL){
+        // if first then insert in front
+        myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
+    }
+    else{
+        // finding the last Node
+        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
+        while(temp->next != NULL){
+            temp = temp->next;
+        }
+
+        if(temp->cusotomer.age < currentWalkingCustomer->cusotomer.age){
+            // insert at front
+            walkingCustomer *firstCustomer = myPizzaShop->nextWalkingCustomer;
+            myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
+            currentWalkingCustomer->next = firstCustomer;
+        }
+        else{
+            // insert at end
+            temp->next = currentWalkingCustomer;
+            currentWalkingCustomer->next = NULL;
+        }
+
+    }
+}
+void serveOrderWalkingCustomer(){
+    if(myPizzaShop->nextWalkingCustomer == NULL){
+        cout << "No Walking Customer to Serve" << endl;
+    }
+    else{
+        // serving the first customer
+        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
+        myPizzaShop->nextWalkingCustomer = temp->next;
+        cout << "Walking Customer Served : " << temp->cusotomer.name << endl;
+        delete temp; // deleting the customer
+    }
+}
 
 // Now defining Order Placing and Serving of Dine-In Customer
 // Based on : First Come First Served (FIFO) (QUEUE)
-void placeOrderDineInCustomer();
-void serveOrderDineInCustomer();
+
+void placeOrderDineInCustomer(int age, string name, string pizzaName, int quantity, double bill){
+    // making new Customer
+    currentDineInCustomer = new dineInCustomer(age, name, quantity, pizzaName, bill);
+
+    if(myPizzaShop->nextDineInCustomer == NULL){
+        //if first insert in front
+        myPizzaShop->nextDineInCustomer = currentDineInCustomer;
+    }
+    else{
+        // finding the last Node
+        dineInCustomer *temp = myPizzaShop->nextDineInCustomer;
+        while(temp->next != NULL){
+            temp = temp->next;
+        }
+
+        temp->next = currentDineInCustomer;
+        currentDineInCustomer->next = NULL;
+    }
+
+}
+void serveOrderDineInCustomer(){
+    if(myPizzaShop->nextDineInCustomer == NULL){
+        cout << "No Dine-In Customer to Serve" << endl;
+    }
+    else{
+        // serving the first customer
+        dineInCustomer *temp = myPizzaShop->nextDineInCustomer;
+        myPizzaShop->nextDineInCustomer = temp->next;
+        cout << "Dine-In Customer Served : " << temp->cusotomer.name << endl;
+        delete temp; // deleting the customer
+    }
+}
 
 // Now defining Order Placing and Serving of Home Delivery Customer
 // Based on : (when all orders are ready)(LIFO)(Stack)
 
-void placeOrderHomeDeliveryCustomer();
-void serveOrderHomeDeliveryCustomer();
+void placeOrderHomeDeliveryCustomer(int age ,string name ,string pizzaName , int quantity, double bill , string address){
+    // making new Customer
+    currentHomeDeliveryCustomer = new homeDeliveryCustomer(age, name, quantity, pizzaName, bill, address);
+
+    if(myPizzaShop->nextHomeDeliveryCustomer == NULL){
+        // if first insert in front
+        myPizzaShop->nextHomeDeliveryCustomer = currentHomeDeliveryCustomer;
+    }
+    else{
+        // finding the last Node
+        homeDeliveryCustomer *temp = myPizzaShop->nextHomeDeliveryCustomer;
+        while(temp->next != NULL){
+            temp = temp->next;
+        }
+
+        temp->next = currentHomeDeliveryCustomer;
+        currentHomeDeliveryCustomer->next = NULL;
+    }
+
+}
+
+void serveOrderHomeDeliveryCustomer(){
+    if(myPizzaShop->nextHomeDeliveryCustomer == NULL){
+        cout << "No Home Delivery Customer to Serve" << endl;
+    }
+    else{
+        // serving the last customer first
+        homeDeliveryCustomer *previous = myPizzaShop->nextHomeDeliveryCustomer;
+        homeDeliveryCustomer *temp = NULL;
+
+        while(previous->next->next != NULL){
+            previous = previous->currentHomeDeliveryCustomer;
+        }
+
+        temp = previous->next;
+
+        previous->next = NULL;
+        cout << "Home Delivery Customer Served : " << temp->cusotomer.name << endl;
+        delete temp; // deleting the customer
+
+    }
+}
 
 
 // In case of Serving , to keep the record of Customers Served, implementing AVL Tree
 // to search the record of Customers by Name
 // It can also Display all the customers Served
+
 int main()
 {
     // making pizza shop
