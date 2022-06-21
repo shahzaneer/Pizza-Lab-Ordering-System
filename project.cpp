@@ -1,6 +1,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <bits/stdc++.h>
+const int infinity = INT_MAX;
+const int maxVerticesInGraph = 100;
 using namespace std;
 
 // Pizza Shop Ordering Management System
@@ -15,7 +17,7 @@ struct customer
     int quantity;
     double bill;
 
-    customer(){}
+    customer() {}
 
     customer(int age, string name, int quantity, string pizzaName, double bill)
     {
@@ -414,7 +416,6 @@ servedCustomer *deleteNode(servedCustomer *root, string keyName)
     return root; // in case there is no need of rotation
 }
 
-
 // Now defining Order Placing and Serving of Walking Customer
 // Based on : Older person will be served first (PRIORITY QUEUE)
 
@@ -596,20 +597,24 @@ void serveAllOrders()
     }
 }
 
-void displayAllOrdersWalkingCustomers(){
-    if(myPizzaShop->nextWalkingCustomer == NULL){
+void displayAllOrdersWalkingCustomers()
+{
+    if (myPizzaShop->nextWalkingCustomer == NULL)
+    {
         cout << "There is no Order for Walking Customer till yet" << endl;
     }
-    else{
+    else
+    {
         walkingCustomer *traversal = myPizzaShop->nextWalkingCustomer;
-        while(traversal != NULL){
+        while (traversal != NULL)
+        {
 
             cout << "-----------------------------------------------------" << endl;
             cout << "Walking Customer : " << traversal->cusotomer.name << endl;
             cout << "Age : " << traversal->cusotomer.age << endl;
             cout << "Pizza Name : " << traversal->cusotomer.pizzaName << endl;
             cout << "Quantity : " << traversal->cusotomer.quantity << endl;
-            cout << "Bill : " << traversal->cusotomer.bill <<" RS/_"<< endl;
+            cout << "Bill : " << traversal->cusotomer.bill << " RS/_" << endl;
             cout << "-----------------------------------------------------" << endl;
 
             traversal = traversal->next;
@@ -617,7 +622,8 @@ void displayAllOrdersWalkingCustomers(){
     }
 }
 
-void displayAllOrdersHomeDeliveryCustomers(){
+void displayAllOrdersHomeDeliveryCustomers()
+{
     if (myPizzaShop->nextHomeDeliveryCustomer == NULL)
     {
         cout << "There is no Order for Home Delivery Customer till yet" << endl;
@@ -641,7 +647,8 @@ void displayAllOrdersHomeDeliveryCustomers(){
     }
 }
 
-void displayAllOrdersDineInCustomers(){
+void displayAllOrdersDineInCustomers()
+{
     if (myPizzaShop->nextDineInCustomer == NULL)
     {
         cout << "There is no Order for Dine-In Customer till yet" << endl;
@@ -664,7 +671,8 @@ void displayAllOrdersDineInCustomers(){
     }
 }
 
-void displayAllOrders(){
+void displayAllOrders()
+{
 
     cout << "The Walk-IN Customers Are :" << endl;
     displayAllOrdersWalkingCustomers();
@@ -674,33 +682,72 @@ void displayAllOrders(){
 
     cout << "The Home Delivery Customers Are :" << endl;
     displayAllOrdersHomeDeliveryCustomers();
-
 }
 
-void earnings(){
+void earnings()
+{
     walkingCustomer *p = myPizzaShop->nextWalkingCustomer;
-    while(p != NULL){
+    while (p != NULL)
+    {
         walking += p->cusotomer.bill;
         p = p->next;
     }
     dineInCustomer *q = myPizzaShop->nextDineInCustomer;
-    while(q != NULL){
+    while (q != NULL)
+    {
         dineIn += q->cusotomer.bill;
-        q = q -> next;
+        q = q->next;
     }
     homeDeliveryCustomer *r = myPizzaShop->nextHomeDeliveryCustomer;
-    while(r != NULL){
+    while (r != NULL)
+    {
         homeDelivery += r->cusotomer.bill;
         r = r->next;
     }
     total = walking + dineIn + homeDelivery;
 
-    cout << "The total Earning by Walk-In customers are : "<< walking << " RS/_" << endl;
-    cout << "The total Earning by Dine-In customers are : "<< dineIn << " RS/_" << endl;
-    cout << "The total Earning by Home Delivery customers are : "<< homeDelivery << " RS/_" << endl;
+    cout << "The total Earning by Walk-In customers are : " << walking << " RS/_" << endl;
+    cout << "The total Earning by Dine-In customers are : " << dineIn << " RS/_" << endl;
+    cout << "The total Earning by Home Delivery customers are : " << homeDelivery << " RS/_" << endl;
     cout << "The Total Earnings Are : " << total << " RS/_" << endl;
 }
 
+// making a graph for the available delivery options
+
+vector<pair<int, int>> graph[maxVerticesInGraph];
+
+vector<int> dijkstra(int sourceNode)
+{
+    vector<int> distance(maxVerticesInGraph, infinity);
+    set<pair<int, int>> s;
+    distance[sourceNode] = 0;
+    // current weight of source node , sourceNode
+    s.insert(make_pair(0, sourceNode));
+
+    while (!s.empty())
+    {
+        auto top = *(s.begin());
+        int u = top.first;  //   current weight
+        int v = top.second; //  current vertex
+
+        s.erase(s.begin());
+
+        // traversing the adjacency list of v
+        for (auto child : graph[v])
+        {
+            int childVertex = child.first;
+            int childWeight = child.second;
+
+            if (u + childWeight < distance[childVertex])
+            {
+                distance[childVertex] = u + childWeight;
+                s.insert(make_pair(distance[childVertex], childVertex));
+            }
+        }
+    }
+
+    return distance;
+}
 
 
 int main()
@@ -716,29 +763,30 @@ int main()
 
     // Setting the menu
     myPizzaShop->menu = new string[11]{"",
-        "chickenTikka", "arabicRanch",
-        "chickenFajita", "cheeseLover",
-        "chickenSupreme", "allveggie",
-        "garlicWest", "BeefBold",
-        "phantom", "mexicanDelight"};
+                                       "chickenTikka", "arabicRanch",
+                                       "chickenFajita", "cheeseLover",
+                                       "chickenSupreme", "allveggie",
+                                       "garlicWest", "BeefBold",
+                                       "phantom", "mexicanDelight"};
 
     // setting the price
 
-    myPizzaShop->price = new int[11]{0,2000, 2500, 2400, 2200, 2700, 2000, 2100, 3000, 3000, 2800};
+    myPizzaShop->price = new int[11]{0, 2000, 2500, 2400, 2200, 2700, 2000, 2100, 3000, 3000, 2800};
 
     int option = -99;
 
     // now starting the main program
-    do{
+    do
+    {
 
         cout << "-------------------------------------------------------------------------" << endl;
-        cout << "---------------------------------"<<myPizzaShop->shopName <<"------------------------------" << endl;
+        cout << "---------------------------------" << myPizzaShop->shopName << "------------------------------" << endl;
         cout << "-------------------------------------------------------------------------" << endl;
         cout << "-------------------------------------------------------------------------" << endl;
 
         cout << "Located at " << myPizzaShop->address << endl;
         cout << "Our Menu is as follows: " << endl;
-        for (int i = 1; i<=10; i++)
+        for (int i = 1; i <= 10; i++)
         {
             cout << i << ". " << myPizzaShop->menu[i] << " - " << myPizzaShop->price[i] << endl;
         }
@@ -783,116 +831,120 @@ int main()
 
         switch (option)
         {
-            case 1:
-                // placing order for walk-in customer
-                cout << "Enter the name of the customer: ";
-                cin >> name;
-                cout << "Enter the age of the customer: ";
-                cin >> age;
-                cout << "Enter the quantity of the pizza: ";
-                cin >> quantity;
-                cout << "Enter the option for the pizza: ";
-                cin >> pizzaIndex;
+        case 1:
+            // placing order for walk-in customer
+            cout << "Enter the name of the customer: ";
+            cin >> name;
+            cout << "Enter the age of the customer: ";
+            cin >> age;
+            cout << "Enter the quantity of the pizza: ";
+            cin >> quantity;
+            cout << "Enter the option for the pizza: ";
+            cin >> pizzaIndex;
 
-                bill = quantity * myPizzaShop->price[pizzaIndex];
-                placeOrderWalkingCustomer(age,name,myPizzaShop->menu[pizzaIndex],quantity,bill);
-                break;
+            bill = quantity * myPizzaShop->price[pizzaIndex];
+            placeOrderWalkingCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill);
+            break;
 
-            case 2:
+        case 2:
 
-                // placing order for Home Delivery customer
-                cout << "Enter the name of the customer: ";
-                cin >> name;
-                cout << "Enter the age of the customer: ";
-                cin >> age;
-                cout << "Enter the quantity of the pizza: ";
-                cin >> quantity;
-                cout << "Enter the option for the pizza: ";
-                cin >> pizzaIndex;
-                cout << "Enter the address of the customer: ";
-                cin >> address;
+            // placing order for Home Delivery customer
+            cout << "Enter the name of the customer: ";
+            cin >> name;
+            cout << "Enter the age of the customer: ";
+            cin >> age;
+            cout << "Enter the quantity of the pizza: ";
+            cin >> quantity;
+            cout << "Enter the option for the pizza: ";
+            cin >> pizzaIndex;
+            cout << "Enter the address of the customer: ";
+            cin >> address;
 
-                bill = quantity * myPizzaShop->price[pizzaIndex];
-                placeOrderHomeDeliveryCustomer(age,name,myPizzaShop->menu[pizzaIndex],quantity,bill ,address);
-                break;
+            bill = quantity * myPizzaShop->price[pizzaIndex];
+            placeOrderHomeDeliveryCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill, address);
+            break;
 
-            case 3:
-                // placing order for Dine-in customer
+        case 3:
+            // placing order for Dine-in customer
 
-                cout << "Enter the name of the customer: ";
-                cin >> name;
-                cout << "Enter the age of the customer: ";
-                cin >> age;
-                cout << "Enter the quantity of the pizza: ";
-                cin >> quantity;
-                cout << "Enter the option for the pizza: ";
-                cin >> pizzaIndex;
+            cout << "Enter the name of the customer: ";
+            cin >> name;
+            cout << "Enter the age of the customer: ";
+            cin >> age;
+            cout << "Enter the quantity of the pizza: ";
+            cin >> quantity;
+            cout << "Enter the option for the pizza: ";
+            cin >> pizzaIndex;
 
-                bill = quantity * myPizzaShop->price[pizzaIndex];
-                placeOrderDineInCustomer(age,name,myPizzaShop->menu[pizzaIndex],quantity,bill);
-                break;
+            bill = quantity * myPizzaShop->price[pizzaIndex];
+            placeOrderDineInCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill);
+            break;
 
-            case 4:
-                // serving order for walk-in customer
-                serveOrderWalkingCustomer();
-                break;
+        case 4:
+            // serving order for walk-in customer
+            serveOrderWalkingCustomer();
+            break;
 
-            case 5:
-                // serving order for Home Delivery customer
-                serveOrderHomeDeliveryCustomer();
+        case 5:
+            // serving order for Home Delivery customer
+            serveOrderHomeDeliveryCustomer();
 
-                break;
+            break;
 
-            case 6:
-                // serving order for Dine-in customer
-                serveOrderDineInCustomer();
-                break;
+        case 6:
+            // serving order for Dine-in customer
+            serveOrderDineInCustomer();
+            break;
 
-            case 7:
-                // serving all orders
-                serveAllOrders();
-                break;
+        case 7:
+            // serving all orders
+            serveAllOrders();
+            break;
 
-            case 8:
-                // displaying all orders of walk-in customers
-                displayAllOrdersWalkingCustomers();
-                break;
+        case 8:
+            // displaying all orders of walk-in customers
+            displayAllOrdersWalkingCustomers();
+            break;
 
-            case 9:
-                // displaying all orders of Home Delivery customers
-                displayAllOrdersHomeDeliveryCustomers();
-                break;
+        case 9:
+            // displaying all orders of Home Delivery customers
+            displayAllOrdersHomeDeliveryCustomers();
+            break;
 
-            case 10:
-                // displaying all orders of Dine-in customers
-                displayAllOrdersDineInCustomers();
-                break;
+        case 10:
+            // displaying all orders of Dine-in customers
+            displayAllOrdersDineInCustomers();
+            break;
 
-            case 11:
-                // displaying all orders of all customers
-                displayAllOrders();
-                break;
+        case 11:
+            // displaying all orders of all customers
+            displayAllOrders();
+            break;
 
-            case 12:
-                // displaying all served orders
-                displayAllServedOrders(root);
-                break;
-            case 13:
-                // searching served orders
-                cout << "Enter the name of the customer you want to search: "<<endl;
-                cin >> name;
-                servedCustomer *searchedCustomer =  search(root, name);
-                if(searchedCustomer == NULL)
-                    cout << "No such Customer was Served " << endl;
-                else 
-                    display(searchedCustomer);
-                break;
+        case 12:
+            // displaying all served orders
+            displayAllServedOrders(root);
+            break;
+        case 13:
+            // searching served orders
+            cout << "Enter the name of the customer you want to search: " << endl;
+            cin >> name;
+            servedCustomer *searchedCustomer = search(root, name);
+            if (searchedCustomer == NULL)
+                cout << "No such Customer was Served " << endl;
+            else
+                display(searchedCustomer);
+            break;
 
+        case 14:
+            // earnings of the Shop
+            earnings();
+            break;
         }
 
     } while (option != 0);
 
-    cout << "Pizza Order Management System -- Terminated"<<endl;
+    cout << "Pizza Order Management System -- Terminated" << endl;
     cout << "Thank you for Using our Services " << endl;
 
     return 0;
