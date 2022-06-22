@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <bits/stdc++.h>
 const int infinity = INT_MAX;
-const int maxVerticesInGraph = 100;
 using namespace std;
 
 // Pizza Shop Ordering Management System
@@ -56,11 +55,16 @@ struct homeDeliveryCustomer
 
     customer cusotomer;
     string address;
+    double deliveryCharges;
+    int distanceDelivery;
     struct homeDeliveryCustomer *next = NULL;
-    homeDeliveryCustomer(int age, string name, int quantity, string pizzaName, double bill, string address)
+
+    homeDeliveryCustomer(int age, string name, int quantity, string pizzaName, double bill, string address, double deliveryCharges, int distanceDelivery)
     {
         this->cusotomer = customer(age, name, quantity, pizzaName, bill);
         this->address = address;
+        this->deliveryCharges = deliveryCharges;
+        this->distanceDelivery = distanceDelivery;
     }
 };
 
@@ -80,14 +84,16 @@ struct PizzaShop
 PizzaShop *myPizzaShop = NULL;
 
 // Globally Declaring the Current Customer's Pointers for all three Types
-takeAwayCustomer *currentWalkingCustomer = NULL;
+takeAwayCustomer *currentTakeAwayCustomer = NULL;
 dineInCustomer *currentDineInCustomer = NULL;
 homeDeliveryCustomer *currentHomeDeliveryCustomer = NULL;
 
-// Globally declaring the variables for the total of all the orders
-double total, walking, dineIn, homeDelivery;
+// Globally declaring the variables for the total of all the orders in queue!
+double total, takeAway, dineIn, homeDelivery;
+// Globally declaring the variables for the total of all the orders served!
+double servedTotal;
 
-// In case of Serving , to keep the record of Customers Served, implementing AVL Tree
+// In case of Serving , to keep the record of Customers Served, implementing AVL Tree for efficient Search
 // to search the record of Customers by Name
 // It can also Display all the customers Served
 
@@ -143,13 +149,8 @@ void display(servedCustomer *root)
 
 // Traversal for the served Customers
 
-void displayAllServedOrders(servedCustomer *root)
+servedCustomer *displayAllServedOrders(servedCustomer *root)
 {
-    if (!root)
-    {
-        cout << "No Served Customer " << endl;
-        return;
-    }
 
     if (root)
     {
@@ -157,6 +158,8 @@ void displayAllServedOrders(servedCustomer *root)
         display(root); // will display all the served Customers
         displayAllServedOrders(root->right);
     }
+
+    return root;
 }
 
 // Height of servedCustomer tree
@@ -417,18 +420,18 @@ void deleteAllServedCustomers(servedCustomer *root)
     cout << "The Served Customer's List is Cleared " << endl;
 }
 
-// Now defining Order Placing and Serving of Walking Customer
+// Now defining Order Placing and Serving of Take Away Customer
 // Based on : Older person will be served first (PRIORITY QUEUE)
 
 void placeOrderTakeAwayCustomer(int age, string name, string pizzaName, int quantity, double bill)
 {
     // making new Customer
-    currentWalkingCustomer = new takeAwayCustomer(age, name, quantity, pizzaName, bill);
+    currentTakeAwayCustomer = new takeAwayCustomer(age, name, quantity, pizzaName, bill);
 
     if (myPizzaShop->nextTakeAwayCustomer == NULL)
     {
         // if first then insert in front
-        myPizzaShop->nextTakeAwayCustomer = currentWalkingCustomer;
+        myPizzaShop->nextTakeAwayCustomer = currentTakeAwayCustomer;
     }
     else
     {
@@ -439,18 +442,18 @@ void placeOrderTakeAwayCustomer(int age, string name, string pizzaName, int quan
             temp = temp->next;
         }
 
-        if (temp->cusotomer.age < currentWalkingCustomer->cusotomer.age)
+        if (temp->cusotomer.age < currentTakeAwayCustomer->cusotomer.age)
         {
             // insert at front
             takeAwayCustomer *firstCustomer = myPizzaShop->nextTakeAwayCustomer;
-            myPizzaShop->nextTakeAwayCustomer = currentWalkingCustomer;
-            currentWalkingCustomer->next = firstCustomer;
+            myPizzaShop->nextTakeAwayCustomer = currentTakeAwayCustomer;
+            currentTakeAwayCustomer->next = firstCustomer;
         }
         else
         {
             // insert at end
-            temp->next = currentWalkingCustomer;
-            currentWalkingCustomer->next = NULL;
+            temp->next = currentTakeAwayCustomer;
+            currentTakeAwayCustomer->next = NULL;
         }
     }
     cout << "Your Order has been Placed MR/MRS " << name << " and your order is " << pizzaName << " with " << quantity << " quantity and total bill is " << bill << endl;
@@ -527,10 +530,10 @@ void serveOrderDineInCustomer()
 // Now defining Order Placing and Serving of Home Delivery Customer
 // Based on : (when all orders are ready)(LIFO)(Stack)
 
-void placeOrderHomeDeliveryCustomer(int age, string name, string pizzaName, int quantity, double bill, string address)
+void placeOrderHomeDeliveryCustomer(int age, string name, string pizzaName, int quantity, double bill, string address, int deliveryCharges, int distanceDelivery)
 {
     // making new Customer
-    currentHomeDeliveryCustomer = new homeDeliveryCustomer(age, name, quantity, pizzaName, bill, address);
+    currentHomeDeliveryCustomer = new homeDeliveryCustomer(age, name, quantity, pizzaName, bill, address, deliveryCharges, distanceDelivery);
 
     if (myPizzaShop->nextHomeDeliveryCustomer == NULL)
     {
@@ -560,18 +563,27 @@ void serveOrderHomeDeliveryCustomer()
     }
     else
     {
+
         // serving the last customer first
-        homeDeliveryCustomer *previous = myPizzaShop->nextHomeDeliveryCustomer;
-        homeDeliveryCustomer *temp = NULL;
+        homeDeliveryCustomer *temp = myPizzaShop->nextHomeDeliveryCustomer;
 
-        while (previous->next->next != NULL)
+        if (temp->next == NULL)
         {
-            previous = previous->next;
+            // if it is the only customer
+
+            myPizzaShop->nextHomeDeliveryCustomer = NULL;
         }
+        else
+        {
+            homeDeliveryCustomer *q = temp->next;
+            while (q->next != NULL) // segmentation fault
+            {
+                q = q->next;
+                temp = temp->next;
+            }
 
-        temp = previous->next;
-
-        previous->next = NULL;
+            temp->next = NULL;
+        }
         cout << "Home Delivery Customer Served : " << temp->cusotomer.name << endl;
 
         string customerType = "Home-Delivery Customer";
@@ -642,6 +654,8 @@ void displayAllOrdersHomeDeliveryCustomers()
             cout << "Age : " << traversal->cusotomer.age << endl;
             cout << "Pizza Name : " << traversal->cusotomer.pizzaName << endl;
             cout << "Quantity : " << traversal->cusotomer.quantity << endl;
+            cout << "Delivery Charges : " << traversal->deliveryCharges << endl;
+            cout << "Distance From Shop: " << traversal->distanceDelivery << endl;
             cout << "Bill : " << traversal->cusotomer.bill << " RS/_" << endl;
             cout << "Address : " << traversal->address << endl;
             cout << "-----------------------------------------------------" << endl;
@@ -688,12 +702,12 @@ void displayAllOrders()
     displayAllOrdersHomeDeliveryCustomers();
 }
 
-void earnings()
+void totalbillofPendingOrders()
 {
     takeAwayCustomer *p = myPizzaShop->nextTakeAwayCustomer;
     while (p != NULL)
     {
-        walking += p->cusotomer.bill;
+        takeAway += p->cusotomer.bill;
         p = p->next;
     }
     dineInCustomer *q = myPizzaShop->nextDineInCustomer;
@@ -708,33 +722,49 @@ void earnings()
         homeDelivery += r->cusotomer.bill;
         r = r->next;
     }
-    total = walking + dineIn + homeDelivery;
+    total = takeAway + dineIn + homeDelivery;
 
-    cout << "The total Earning by Take-Away customers are : " << walking << " RS/_" << endl;
-    cout << "The total Earning by Dine-In customers are : " << dineIn << " RS/_" << endl;
-    cout << "The total Earning by Home Delivery customers are : " << homeDelivery << " RS/_" << endl;
-    cout << "The Total Earnings Are : " << total << " RS/_" << endl;
+    cout << "The total bill of pending orders for Take-Away customers are : " << takeAway << " RS/_" << endl;
+    cout << "The total bill of pending orders for Dine-In customers are : " << dineIn << " RS/_" << endl;
+    cout << "The total bill of pending orders for Delivery customers are : " << homeDelivery << " RS/_" << endl;
+    cout << "The Total orders pending are : " << total << " RS/_" << endl;
+}
+
+void totalEarnings(servedCustomer *root){
+    if (root == NULL){
+        cout << "No Served Customers yets " << endl;
+    }
+    else{
+        totalEarnings(root->left);
+        servedTotal += root->bill;
+        totalEarnings(root->right);
+    }
 }
 
 // making a graph for the available delivery options
 
-//                           0              1          5         3          4          5          6
-string deliveryPoints[] = {"PizzaSHOP", "Chauburji", "Anarkali", "Shadman", "Islampura", "JoharTown", "Mozang"};
+//                           0              1             2        3          4           5
+string deliveryPoints[] = {"PizzaSHOP", "Chauburji", "Shadman", "Islampura", "JoharTown", "Anarkali"};
 
-// 0 source, 1 chub, 2 shad, 3 Islam, 4 Johar, 5 Anar
-vector<vector<pair<int, double>>> graph = {
-    {{1, 2}, {2, 3}, {3, 5}, {5, 1.5}},
-    {{0, 2}, {5, 0.5}},
-    {{0, 3}, {3, 1}},
-    {{0, 5}, {4, 2}, {2, 1}},
-    {{3, 2}, {5, 1.5}},
-    {{0, 1.5}, {1, 0.5}, {4, 1.5}}};
+// first value in the pair is vertex and second is the distance (weight) in KM
+
+vector<vector<pair<int, int>>> deliveryMap = {
+
+    // first value in the pair is vertex and second is the distance (weight) in KM
+    {{1, 2}, {2, 3}, {3, 5}, {5, 2}}, //  0  (Pizza Shop)
+    {{0, 2}, {5, 1}},                 //  1  (Chauburji)
+    {{0, 3}, {3, 1}},                 //  2  (Shadman)
+    {{0, 5}, {4, 2}, {5, 7}, {2, 1}}, //  3  (Islampura)
+    {{3, 2}, {5, 2}},                 //  4  (Johar Town)
+    {{0, 1.5}, {1, 0.5}, {4, 2}}      //  5  (Anarkali)
+
+};
 
 vector<int> dijkstra(int sourceNode)
 {
-    vector<int> distance(maxVerticesInGraph, infinity);
+    vector<int> distance(6, infinity);
     set<pair<int, int>> s;
-    distance[sourceNode] = 0;
+    distance[sourceNode] = 0; // Pizza Shop
     s.insert(make_pair(0, sourceNode));
 
     while (!s.empty())
@@ -746,7 +776,7 @@ vector<int> dijkstra(int sourceNode)
         s.erase(s.begin());
 
         // traversing the adjacency list of v
-        for (auto child : graph[v])
+        for (auto child : deliveryMap[v])
         {
             int childVertex = child.first;
             int childWeight = child.second;
@@ -829,7 +859,8 @@ int main()
         cout << "12. Display all served Orders" << endl;
         cout << "13. Search Served Orders " << endl;
         cout << "14. Clear the Served Orders List " << endl;
-        cout << "15. Display total earnings of Shop" << endl;
+        cout << "15. Display total bill of Pending Orders " << endl;
+        cout << "16. Display the total Earnings of Served Orders " << endl;
         cout << "0.  EXIT " << endl;
 
         cout << "Enter your choice: ";
@@ -862,7 +893,27 @@ int main()
 
         case 2:
 
-        { // placing order for Home Delivery customer
+        {                                               // placing order for Home Delivery customer
+            vector<int> distanceFromShop = dijkstra(0); // As Zero is our Source Node
+
+            int optionDelivery = -999;
+
+            do
+            {
+                cout << "The delivery is available for following Areas : " << endl;
+                for (int i = 1; i <= 5; i++)
+                {
+                    cout << i << ". " << deliveryPoints[i] << endl;
+                }
+
+                cout << "Enter your option :" << endl;
+                cin >> optionDelivery;
+
+            } while (!(optionDelivery >= 0 && optionDelivery <= 5));
+
+            // setting the delivery address of the Customer
+            address = deliveryPoints[optionDelivery];
+
             cout << "Enter the name of the customer: ";
             cin >> name;
             cout << "Enter the age of the customer: ";
@@ -871,11 +922,14 @@ int main()
             cin >> quantity;
             cout << "Enter the option for the pizza: ";
             cin >> pizzaIndex;
-            cout << "Enter the address of the customer: ";
-            cin >> address;
 
-            bill = quantity * myPizzaShop->price[pizzaIndex];
-            placeOrderHomeDeliveryCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill, address);
+            int deliveryChargesPerKM = 50;
+            int deliveryCharges = deliveryChargesPerKM * distanceFromShop[optionDelivery];
+            bill = quantity * myPizzaShop->price[pizzaIndex] + deliveryCharges;
+
+            // distance from the shop
+            int distanceFromTheShop = distanceFromShop[optionDelivery];
+            placeOrderHomeDeliveryCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill, address, distanceFromTheShop, deliveryCharges);
         }
         break;
 
@@ -937,9 +991,13 @@ int main()
             break;
 
         case 12:
-            // displaying all served orders
-            displayAllServedOrders(root);
-            break;
+        { // displaying all served orders
+            servedCustomer *r = displayAllServedOrders(root);
+            if (!r)
+                cout << "No Served Customer yet " << endl;
+        }
+        break;
+
         case 13:
         { // searching served orders
             cout << "Enter the name of the customer you want to search: " << endl;
@@ -953,15 +1011,31 @@ int main()
         break;
 
         case 14:
-            // clearing the served Orders
+        { // clearing the served Orders
+
             deleteAllServedCustomers(root);
             root = NULL;
-            break;
+        }
+        break;
 
         case 15:
-            // earnings of the Shop
-            earnings();
-            break;
+        { // pending orders bill in queue for all!
+
+            // resetting the state of total orders
+            takeAway = 0, dineIn = 0, homeDelivery = 0, total = 0; 
+            totalbillofPendingOrders();
+        }
+        break;
+
+        case 16:
+        { // total earnings from served orders!
+
+        // resetting thr state of total served orders
+        servedTotal = 0;
+        totalEarnings(root);
+        
+        }
+        break;
         }
 
     } while (option != 0);
