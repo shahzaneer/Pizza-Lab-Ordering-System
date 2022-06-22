@@ -468,7 +468,14 @@ void serveOrderTakeAwayCustomer()
     {
         // serving the first customer
         takeAwayCustomer *temp = myPizzaShop->nextTakeAwayCustomer;
-        myPizzaShop->nextTakeAwayCustomer = temp->next;
+        // if it has some next element
+        if(temp->next != NULL){
+            myPizzaShop->nextTakeAwayCustomer = temp->next;
+        }
+        else{
+            myPizzaShop->nextTakeAwayCustomer = NULL;
+        }
+        
         cout << "Take Away Customer Served : " << temp->cusotomer.name << endl;
 
         string customerType = "Take-Away";
@@ -516,7 +523,13 @@ void serveOrderDineInCustomer()
     {
         // serving the first customer
         dineInCustomer *temp = myPizzaShop->nextDineInCustomer;
-        myPizzaShop->nextDineInCustomer = temp->next;
+        if(temp->next != NULL){
+            myPizzaShop->nextDineInCustomer = temp->next;
+        }
+        else{
+            myPizzaShop->nextDineInCustomer = NULL;
+        }
+
         cout << "Dine-In Customer Served : " << temp->cusotomer.name << endl;
 
         string customerType = "Dine-In";
@@ -565,32 +578,41 @@ void serveOrderHomeDeliveryCustomer()
     {
 
         // serving the last customer first
-        homeDeliveryCustomer *temp = myPizzaShop->nextHomeDeliveryCustomer;
+        homeDeliveryCustomer *first = myPizzaShop->nextHomeDeliveryCustomer;
 
-        if (temp->next == NULL)
+        if (first->next == NULL)
         {
             // if it is the only customer
 
             myPizzaShop->nextHomeDeliveryCustomer = NULL;
+
+            cout << "Home Delivery Customer Served : " << first->cusotomer.name << endl;
+            string customerType = "Home-Delivery Customer";
+            root = insertion(first->cusotomer.age, first->cusotomer.name, first->cusotomer.quantity, first->cusotomer.pizzaName, first->cusotomer.bill, customerType, root);
+
+            // now deleting the node
+            delete (first);
         }
-        else
-        {
-            homeDeliveryCustomer *q = temp->next;
-            while (q->next != NULL) // segmentation fault
-            {
-                q = q->next;
-                temp = temp->next;
+        else {
+            homeDeliveryCustomer *s = first->next;
+            while(s->next !=NULL){
+                first = first->next;
+                s = s->next;
             }
 
-            temp->next = NULL;
+            first->next = NULL;
+
+            cout << "Home Delivery Customer Served : " << s->cusotomer.name << endl;
+            string customerType = "Home-Delivery Customer";
+            root = insertion(s->cusotomer.age, s->cusotomer.name, s->cusotomer.quantity, s->cusotomer.pizzaName, s->cusotomer.bill, customerType, root);
+
+            // deleting the node
+
+            delete (s);
         }
-        cout << "Home Delivery Customer Served : " << temp->cusotomer.name << endl;
 
-        string customerType = "Home-Delivery Customer";
-        // Now before deleting the node we need to update the servedCustomer Tree
-        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, customerType, root);
-
-        delete temp; // deleting the customer
+        
+        // deleting the customer
     }
 }
 
@@ -654,10 +676,10 @@ void displayAllOrdersHomeDeliveryCustomers()
             cout << "Age : " << traversal->cusotomer.age << endl;
             cout << "Pizza Name : " << traversal->cusotomer.pizzaName << endl;
             cout << "Quantity : " << traversal->cusotomer.quantity << endl;
-            cout << "Delivery Charges : " << traversal->deliveryCharges << endl;
-            cout << "Distance From Shop: " << traversal->distanceDelivery << endl;
+            cout << "Delivery Distance : " << traversal->deliveryCharges << "KM"<<endl;
+            cout << "Delivery Charges : " << traversal->distanceDelivery << endl;
             cout << "Bill : " << traversal->cusotomer.bill << " RS/_" << endl;
-            cout << "Address : " << traversal->address << endl;
+            cout << "Delivery Address : " << traversal->address << endl;
             cout << "-----------------------------------------------------" << endl;
 
             traversal = traversal->next;
@@ -730,15 +752,15 @@ void totalbillofPendingOrders()
     cout << "The Total orders pending are : " << total << " RS/_" << endl;
 }
 
-void totalEarnings(servedCustomer *root){
-    if (root == NULL){
-        cout << "No Served Customers yets " << endl;
-    }
-    else{
+double totalEarnings(servedCustomer *root){
+
+    if(root){
         totalEarnings(root->left);
         servedTotal += root->bill;
         totalEarnings(root->right);
     }
+
+    return servedTotal;
 }
 
 // making a graph for the available delivery options
@@ -822,7 +844,7 @@ int main()
     {
 
         cout << "-------------------------------------------------------------------------" << endl;
-        cout << "---------------------------------" << myPizzaShop->shopName << "------------------------------" << endl;
+        cout << "---------------------------------" << myPizzaShop->shopName << "-----------------------" << endl;
         cout << "-------------------------------------------------------------------------" << endl;
         cout << "-------------------------------------------------------------------------" << endl;
 
@@ -1032,8 +1054,8 @@ int main()
 
         // resetting thr state of total served orders
         servedTotal = 0;
-        totalEarnings(root);
-        
+        double totalx = totalEarnings(root);
+        cout << "The Total Earnings are : " << totalx << endl;
         }
         break;
         }
