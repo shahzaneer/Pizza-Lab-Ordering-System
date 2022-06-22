@@ -778,7 +778,7 @@ vector<vector<pair<int, int>>> deliveryMap = {
     {{0, 3}, {3, 1}},                 //  2  (Shadman)
     {{0, 5}, {4, 2}, {5, 7}, {2, 1}}, //  3  (Islampura)
     {{3, 2}, {5, 2}},                 //  4  (Johar Town)
-    {{0, 1.5}, {1, 0.5}, {4, 2}}      //  5  (Anarkali)
+    {{0, 2}, {1, 1}, {4, 2}}          //  5  (Anarkali)
 
 };
 
