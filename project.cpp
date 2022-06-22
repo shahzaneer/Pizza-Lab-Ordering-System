@@ -200,11 +200,11 @@ servedCustomer *search(servedCustomer *root, string keyName)
     {
         return root;
     }
-    else if (root->name > keyName)
+    else if (root->name < keyName)
     {
         return search(root->right, keyName);
     }
-    else if (root->name < keyName)
+    else if (root->name > keyName)
     {
         return search(root->left, keyName);
     }
