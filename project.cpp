@@ -29,12 +29,12 @@ struct customer
     }
 };
 
-struct walkingCustomer
+struct takeAwayCustomer
 {
     customer cusotomer;
-    walkingCustomer *next = NULL;
+    takeAwayCustomer *next = NULL;
 
-    walkingCustomer(int age, string name, int quantity, string pizzaName, double bill)
+    takeAwayCustomer(int age, string name, int quantity, string pizzaName, double bill)
     {
         this->cusotomer = customer(age, name, quantity, pizzaName, bill);
     }
@@ -71,7 +71,7 @@ struct PizzaShop
     string *menu;
     int *price;
     string address;
-    walkingCustomer *nextWalkingCustomer = NULL;
+    takeAwayCustomer *nextTakeAwayCustomer = NULL;
     dineInCustomer *nextDineInCustomer = NULL;
     homeDeliveryCustomer *nextHomeDeliveryCustomer = NULL;
 };
@@ -80,7 +80,7 @@ struct PizzaShop
 PizzaShop *myPizzaShop = NULL;
 
 // Globally Declaring the Current Customer's Pointers for all three Types
-walkingCustomer *currentWalkingCustomer = NULL;
+takeAwayCustomer *currentWalkingCustomer = NULL;
 dineInCustomer *currentDineInCustomer = NULL;
 homeDeliveryCustomer *currentHomeDeliveryCustomer = NULL;
 
@@ -99,11 +99,12 @@ struct servedCustomer
     int quantity;
     string pizzaName;
     double bill;
+    string customerType;
     servedCustomer *left;
     servedCustomer *right;
 
     // Constructor
-    servedCustomer(int age, string name, int quantity, string pizzaName, double bill)
+    servedCustomer(int age, string name, int quantity, string pizzaName, double bill, string customerType)
     {
         // setting customers details
 
@@ -112,6 +113,7 @@ struct servedCustomer
         this->quantity = quantity;
         this->pizzaName = pizzaName;
         this->bill = bill;
+        this->customerType = customerType;
 
         // child to NULL
         this->left = NULL;
@@ -131,17 +133,24 @@ int isEmpty(servedCustomer *root)
 
 void display(servedCustomer *root)
 {
-    cout << root->name << endl;
-    cout << root->age << endl;
-    cout << root->pizzaName << endl;
-    cout << root->quantity << endl;
-    cout << root->bill << endl;
+    cout << "Name :" << root->name << endl;
+    cout << "Age  :" << root->age << endl;
+    cout << "Pizza :" << root->pizzaName << endl;
+    cout << "Quantity : " << root->quantity << endl;
+    cout << "Bill : " << root->bill << endl;
+    cout << "Customer Type: " << root->customerType << endl;
 }
 
 // Traversal for the served Customers
 
 void displayAllServedOrders(servedCustomer *root)
 {
+    if (!root)
+    {
+        cout << "No Served Customer " << endl;
+        return;
+    }
+
     if (root)
     {
         displayAllServedOrders(root->left);
@@ -275,9 +284,9 @@ servedCustomer *RLRotation(servedCustomer *root)
 
 //  INSERTION in servedCustomer Tree
 
-servedCustomer *insertion(int age, string name, int quantity, string pizzaName, double bill, servedCustomer *root)
+servedCustomer *insertion(int age, string name, int quantity, string pizzaName, double bill, string customerType, servedCustomer *root)
 {
-    servedCustomer *newNode = new servedCustomer(age, name, quantity, pizzaName, bill);
+    servedCustomer *newNode = new servedCustomer(age, name, quantity, pizzaName, bill, customerType);
 
     if (root == NULL)
     {
@@ -286,11 +295,11 @@ servedCustomer *insertion(int age, string name, int quantity, string pizzaName, 
 
     else if (root->name > newNode->name)
     {
-        root->left = insertion(age, name, quantity, pizzaName, bill, root->left);
+        root->left = insertion(age, name, quantity, pizzaName, bill, customerType, root->left);
     }
     else if (root->name < newNode->name)
     {
-        root->right = insertion(age, name, quantity, pizzaName, bill, root->right);
+        root->right = insertion(age, name, quantity, pizzaName, bill, customerType, root->right);
     }
 
     else
@@ -333,106 +342,98 @@ servedCustomer *insertion(int age, string name, int quantity, string pizzaName, 
     return root; // in case there is no need of rotation
 }
 
-servedCustomer *deleteNode(servedCustomer *root, string keyName)
+servedCustomer *deleteNode(servedCustomer *root, string key)
 {
     if (root == NULL)
-    {
         return root;
-    }
-    else if (keyName < root->name)
-    {
-        root->left = deleteNode(root->left, keyName);
-    }
-    else if (keyName > root->name)
-    {
-        root->right = deleteNode(root->right, keyName);
-    }
+    else if (key < root->name)
+        root->left = deleteNode(root->left, key);
+    else if (key > root->name)
+        root->right = deleteNode(root->right, key);
     else
     {
-        // It means that we have found our node to be deleted and now its the time to delete the node
+        // if deleteroot has one child or zero child
+        if ((root->left == NULL) || (root->right == NULL))
+        {
+            servedCustomer *temp = root->left ? root->left : root->right;
 
-        servedCustomer *temp = NULL;
-        // case 1: 0 child
-        if (!root->left && !root->right)
-        {
-            delete root;
-            root = NULL; // segmentation Fault (root dangling hogya tha aur tree lost! bht dhayan rkhna hai iska)
-        }
-        // case 2: 1 child
-        else if (!root->left && root->right)
-        {
-            root = temp;
-            root = root->right;
-            delete temp;
-        }
-        else if (!root->right && root->left)
-        {
-            root = temp;
-            root = root->left;
-            delete temp;
+            if (temp == NULL)
+            {
+                temp = root;
+                root = NULL;
+            }
+            else
+                *root = *temp;
+            delete (temp);
         }
         else
         {
-            temp = maxservedCustomer(root->left);
+            // if deleteroot has two or more childs
+            servedCustomer *temp = maxservedCustomer(root->right);
             root->name = temp->name;
-            root->left = deleteNode(root->left, temp->name);
-        }
-
-        // Now start Balancing the root!
-
-        int bf = balanceFactor(root);
-
-        if (bf == 2)
-        {
-            // LL
-            if (root->left->left)
-            {
-                return LLRotation(root);
-            }
-
-            // LR
-
-            else
-            {
-                return LRRotation(root);
-            }
-        }
-        else if (bf == -2)
-        {
-            // RR
-            if (root->right->right)
-            {
-                return RRRotation(root);
-            }
-
-            // RL
-            else
-            {
-                return RLRotation(root);
-            }
+            root->right = deleteNode(root->right, temp->name);
         }
     }
 
-    return root; // in case there is no need of rotation
+    if (root == NULL)
+        return root;
+
+    // getting the balance factor
+    int balance = balanceFactor(root);
+
+    // Rotation Cases
+    // LEFT LEFT CASE
+    if (balance > 1 && key < root->left->name)
+        return LLRotation(root);
+
+    // LEFT RIGHT CASE
+    if (balance > 1 && key > root->left->name)
+    {
+        root->left = LLRotation(root->left);
+        return LRRotation(root);
+    }
+
+    // RIHGT RIGHT CASE
+    if (balance < -1 && key > root->right->name)
+        return RRRotation(root);
+
+    // RIGHT LEFT CASE
+    if (balance < -1 && key < root->right->name)
+    {
+        return RLRotation(root);
+    }
+
+    return root;
+}
+
+void deleteAllServedCustomers(servedCustomer *root)
+{
+
+    while (root)
+    {
+        root = deleteNode(root, root->name);
+    }
+
+    cout << "The Served Customer's List is Cleared " << endl;
 }
 
 // Now defining Order Placing and Serving of Walking Customer
 // Based on : Older person will be served first (PRIORITY QUEUE)
 
-void placeOrderWalkingCustomer(int age, string name, string pizzaName, int quantity, double bill)
+void placeOrderTakeAwayCustomer(int age, string name, string pizzaName, int quantity, double bill)
 {
     // making new Customer
-    currentWalkingCustomer = new walkingCustomer(age, name, quantity, pizzaName, bill);
+    currentWalkingCustomer = new takeAwayCustomer(age, name, quantity, pizzaName, bill);
 
-    if (myPizzaShop->nextWalkingCustomer == NULL)
+    if (myPizzaShop->nextTakeAwayCustomer == NULL)
     {
         // if first then insert in front
-        myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
+        myPizzaShop->nextTakeAwayCustomer = currentWalkingCustomer;
     }
     else
     {
         // finding the last Node
-        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
+        takeAwayCustomer *temp = myPizzaShop->nextTakeAwayCustomer;
         while (temp->next != NULL)
         {
             temp = temp->next;
@@ -441,8 +442,8 @@ void placeOrderWalkingCustomer(int age, string name, string pizzaName, int quant
         if (temp->cusotomer.age < currentWalkingCustomer->cusotomer.age)
         {
             // insert at front
-            walkingCustomer *firstCustomer = myPizzaShop->nextWalkingCustomer;
-            myPizzaShop->nextWalkingCustomer = currentWalkingCustomer;
+            takeAwayCustomer *firstCustomer = myPizzaShop->nextTakeAwayCustomer;
+            myPizzaShop->nextTakeAwayCustomer = currentWalkingCustomer;
             currentWalkingCustomer->next = firstCustomer;
         }
         else
@@ -454,21 +455,22 @@ void placeOrderWalkingCustomer(int age, string name, string pizzaName, int quant
     }
     cout << "Your Order has been Placed MR/MRS " << name << " and your order is " << pizzaName << " with " << quantity << " quantity and total bill is " << bill << endl;
 }
-void serveOrderWalkingCustomer()
+void serveOrderTakeAwayCustomer()
 {
-    if (myPizzaShop->nextWalkingCustomer == NULL)
+    if (myPizzaShop->nextTakeAwayCustomer == NULL)
     {
-        cout << "No Walking Customer to Serve" << endl;
+        cout << "No Take Away Customer to Serve" << endl;
     }
     else
     {
         // serving the first customer
-        walkingCustomer *temp = myPizzaShop->nextWalkingCustomer;
-        myPizzaShop->nextWalkingCustomer = temp->next;
-        cout << "Walking Customer Served : " << temp->cusotomer.name << endl;
+        takeAwayCustomer *temp = myPizzaShop->nextTakeAwayCustomer;
+        myPizzaShop->nextTakeAwayCustomer = temp->next;
+        cout << "Take Away Customer Served : " << temp->cusotomer.name << endl;
 
+        string customerType = "Take-Away";
         // Now before deleting the node we need to update the servedCustomer Tree
-        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, root);
+        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, customerType, root);
 
         delete temp; // deleting the customer
     }
@@ -514,8 +516,9 @@ void serveOrderDineInCustomer()
         myPizzaShop->nextDineInCustomer = temp->next;
         cout << "Dine-In Customer Served : " << temp->cusotomer.name << endl;
 
+        string customerType = "Dine-In";
         // Now before deleting the node we need to update the servedCustomer Tree
-        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, root);
+        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, customerType, root);
 
         delete temp; // deleting the customer
     }
@@ -571,8 +574,9 @@ void serveOrderHomeDeliveryCustomer()
         previous->next = NULL;
         cout << "Home Delivery Customer Served : " << temp->cusotomer.name << endl;
 
+        string customerType = "Home-Delivery Customer";
         // Now before deleting the node we need to update the servedCustomer Tree
-        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, root);
+        root = insertion(temp->cusotomer.age, temp->cusotomer.name, temp->cusotomer.quantity, temp->cusotomer.pizzaName, temp->cusotomer.bill, customerType, root);
 
         delete temp; // deleting the customer
     }
@@ -583,9 +587,9 @@ void serveOrderHomeDeliveryCustomer()
 void serveAllOrders()
 {
 
-    while (myPizzaShop->nextWalkingCustomer != NULL)
+    while (myPizzaShop->nextTakeAwayCustomer != NULL)
     {
-        serveOrderWalkingCustomer();
+        serveOrderTakeAwayCustomer();
     }
     while (myPizzaShop->nextDineInCustomer != NULL)
     {
@@ -597,20 +601,20 @@ void serveAllOrders()
     }
 }
 
-void displayAllOrdersWalkingCustomers()
+void displayAllOrdersTakeAwayCustomers()
 {
-    if (myPizzaShop->nextWalkingCustomer == NULL)
+    if (myPizzaShop->nextTakeAwayCustomer == NULL)
     {
         cout << "There is no Order for Walking Customer till yet" << endl;
     }
     else
     {
-        walkingCustomer *traversal = myPizzaShop->nextWalkingCustomer;
+        takeAwayCustomer *traversal = myPizzaShop->nextTakeAwayCustomer;
         while (traversal != NULL)
         {
 
             cout << "-----------------------------------------------------" << endl;
-            cout << "Walking Customer : " << traversal->cusotomer.name << endl;
+            cout << "Take-Away Customer : " << traversal->cusotomer.name << endl;
             cout << "Age : " << traversal->cusotomer.age << endl;
             cout << "Pizza Name : " << traversal->cusotomer.pizzaName << endl;
             cout << "Quantity : " << traversal->cusotomer.quantity << endl;
@@ -674,8 +678,8 @@ void displayAllOrdersDineInCustomers()
 void displayAllOrders()
 {
 
-    cout << "The Walk-IN Customers Are :" << endl;
-    displayAllOrdersWalkingCustomers();
+    cout << "The Take-Away Customers Are :" << endl;
+    displayAllOrdersTakeAwayCustomers();
 
     cout << "The Dine-IN Customers Are :" << endl;
     displayAllOrdersDineInCustomers();
@@ -686,7 +690,7 @@ void displayAllOrders()
 
 void earnings()
 {
-    walkingCustomer *p = myPizzaShop->nextWalkingCustomer;
+    takeAwayCustomer *p = myPizzaShop->nextTakeAwayCustomer;
     while (p != NULL)
     {
         walking += p->cusotomer.bill;
@@ -706,7 +710,7 @@ void earnings()
     }
     total = walking + dineIn + homeDelivery;
 
-    cout << "The total Earning by Walk-In customers are : " << walking << " RS/_" << endl;
+    cout << "The total Earning by Take-Away customers are : " << walking << " RS/_" << endl;
     cout << "The total Earning by Dine-In customers are : " << dineIn << " RS/_" << endl;
     cout << "The total Earning by Home Delivery customers are : " << homeDelivery << " RS/_" << endl;
     cout << "The Total Earnings Are : " << total << " RS/_" << endl;
@@ -714,14 +718,23 @@ void earnings()
 
 // making a graph for the available delivery options
 
-vector<pair<int, int>> graph[maxVerticesInGraph];
+//                           0              1          5         3          4          5          6
+string deliveryPoints[] = {"PizzaSHOP", "Chauburji", "Anarkali", "Shadman", "Islampura", "JoharTown", "Mozang"};
+
+// 0 source, 1 chub, 2 shad, 3 Islam, 4 Johar, 5 Anar
+vector<vector<pair<int, double>>> graph = {
+    {{1, 2}, {2, 3}, {3, 5}, {5, 1.5}},
+    {{0, 2}, {5, 0.5}},
+    {{0, 3}, {3, 1}},
+    {{0, 5}, {4, 2}, {2, 1}},
+    {{3, 2}, {5, 1.5}},
+    {{0, 1.5}, {1, 0.5}, {4, 1.5}}};
 
 vector<int> dijkstra(int sourceNode)
 {
     vector<int> distance(maxVerticesInGraph, infinity);
     set<pair<int, int>> s;
     distance[sourceNode] = 0;
-    // current weight of source node , sourceNode
     s.insert(make_pair(0, sourceNode));
 
     while (!s.empty())
@@ -748,7 +761,6 @@ vector<int> dijkstra(int sourceNode)
 
     return distance;
 }
-
 
 int main()
 {
@@ -797,18 +809,18 @@ int main()
         cout << "-------------------------------------------------------------------------" << endl;
 
         // Order placing
-        cout << "1. Place order for Walk-in Customer" << endl;
+        cout << "1. Place order for Take-Away Customer" << endl;
         cout << "2. Place order for Home Delivery Customer" << endl;
         cout << "3. Place order for Dine-In Customer" << endl;
 
         // order serving
-        cout << "4. Serve order for Walk-in Customer" << endl;
+        cout << "4. Serve order for Take-Away Customer" << endl;
         cout << "5. Serve order for Home Delivery Customer" << endl;
         cout << "6. Serve order for Dine-In Customer" << endl;
         cout << "7. Serve All Orders " << endl;
 
         // Displaying orders
-        cout << "8. Display all orders of Walk in Customers" << endl;
+        cout << "8. Display all orders of Take-Away Customer" << endl;
         cout << "9. Display all orders of Home Delivery Customers" << endl;
         cout << "10. Display all orders of Dine-In Customers" << endl;
         cout << "11. Display all orders of all Customers" << endl;
@@ -816,7 +828,8 @@ int main()
         // Served orders
         cout << "12. Display all served Orders" << endl;
         cout << "13. Search Served Orders " << endl;
-        cout << "14. Display total earnings of Shop" << endl;
+        cout << "14. Clear the Served Orders List " << endl;
+        cout << "15. Display total earnings of Shop" << endl;
         cout << "0.  EXIT " << endl;
 
         cout << "Enter your choice: ";
@@ -832,7 +845,7 @@ int main()
         switch (option)
         {
         case 1:
-            // placing order for walk-in customer
+        { // placing order for take away customer
             cout << "Enter the name of the customer: ";
             cin >> name;
             cout << "Enter the age of the customer: ";
@@ -843,12 +856,13 @@ int main()
             cin >> pizzaIndex;
 
             bill = quantity * myPizzaShop->price[pizzaIndex];
-            placeOrderWalkingCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill);
-            break;
+            placeOrderTakeAwayCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill);
+        }
+        break;
 
         case 2:
 
-            // placing order for Home Delivery customer
+        { // placing order for Home Delivery customer
             cout << "Enter the name of the customer: ";
             cin >> name;
             cout << "Enter the age of the customer: ";
@@ -862,10 +876,11 @@ int main()
 
             bill = quantity * myPizzaShop->price[pizzaIndex];
             placeOrderHomeDeliveryCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill, address);
-            break;
+        }
+        break;
 
         case 3:
-            // placing order for Dine-in customer
+        { // placing order for Dine-in customer
 
             cout << "Enter the name of the customer: ";
             cin >> name;
@@ -878,17 +893,17 @@ int main()
 
             bill = quantity * myPizzaShop->price[pizzaIndex];
             placeOrderDineInCustomer(age, name, myPizzaShop->menu[pizzaIndex], quantity, bill);
-            break;
+        }
+        break;
 
         case 4:
-            // serving order for walk-in customer
-            serveOrderWalkingCustomer();
+            // serving order for Take Away customer
+            serveOrderTakeAwayCustomer();
             break;
 
         case 5:
             // serving order for Home Delivery customer
             serveOrderHomeDeliveryCustomer();
-
             break;
 
         case 6:
@@ -902,8 +917,8 @@ int main()
             break;
 
         case 8:
-            // displaying all orders of walk-in customers
-            displayAllOrdersWalkingCustomers();
+            // displaying all orders of Take-away customers
+            displayAllOrdersTakeAwayCustomers();
             break;
 
         case 9:
@@ -926,7 +941,7 @@ int main()
             displayAllServedOrders(root);
             break;
         case 13:
-            // searching served orders
+        { // searching served orders
             cout << "Enter the name of the customer you want to search: " << endl;
             cin >> name;
             servedCustomer *searchedCustomer = search(root, name);
@@ -934,9 +949,16 @@ int main()
                 cout << "No such Customer was Served " << endl;
             else
                 display(searchedCustomer);
-            break;
+        }
+        break;
 
         case 14:
+            // clearing the served Orders
+            deleteAllServedCustomers(root);
+            root = NULL;
+            break;
+
+        case 15:
             // earnings of the Shop
             earnings();
             break;
