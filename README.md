@@ -2,16 +2,16 @@
 
 ![](vertopal_05074bfb7092400396677b1a6f733501/media/image2.png)
 
-> **PIZZA LAB MANAGEMENT SYSTEM**
->
-> Data Structures and Algorithm's Project
->
-> SHAHZANEER AHMED
-> SP21-BCS-087
->
-> DR. INAYAT UR REHMAN
+# PIZZA LAB MANAGEMENT SYSTEM**
 
-1
+## Data Structures and Algorithm's Project
+
+### SHAHZANEER AHMED
+### SP21-BCS-087
+
+### DR. INAYAT UR REHMAN
+
+
 
 ![](vertopal_05074bfb7092400396677b1a6f733501/media/image1.png)
 
@@ -26,24 +26,24 @@
 > Searching for the served Customers can be done. The delivery charges
 > are calculated on the basis of the shortest distance on the map and 50 RS_/ per KM is charged as delivery charges.
 >
-> **Types of Customers**
->
-> 1. Walk-In Customers
+ **Types of Customers**
+
+ 1. Walk-In Customers
 >
 > They will be served on the basis of their age. The older customer will
 > be
 >
 > served ﬁrst.
 >
-> 2. Home Delivery Customers
+ 2. Home Delivery Customers
 >
 > They will be served on the basis of LIFO
 >
-> 3. Dine-In Customers
+ 3. Dine-In Customers
 >
 > They will be served on the basis of First come and ﬁrst serve basis.
 >
-> **Served Customers**
+ **Served Customers**
 >
 > The Customers which are served are recorded in the System to keep the
 > record of the served Customers and their bills so that we may have
@@ -87,11 +87,10 @@ It is used in placing orders and serving Home Delivery Customers.
  **6. AVL Tree**
 
 > The Served Customers were saved in it for eﬃcient insertion, deletion,
-> and searching. The implementation was based upon the\
+> and searching. The implementation was based upon the
 > lexicographical comparison of strings.
->
+
  **7. Dijkstra Algorithm**
 
-> It is used to ﬁnd the shortest possible distance from the Pizza Shop
-> and
+> It is used to ﬁnd the shortest possible distance from the Pizza Shop and
 > on this basis, the Delivery charges are calculated.
