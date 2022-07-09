@@ -2,7 +2,7 @@
 
 ![](vertopal_05074bfb7092400396677b1a6f733501/media/image2.png)
 
-# PIZZA LAB MANAGEMENT SYSTEM**
+# PIZZA LAB MANAGEMENT SYSTEM
 
 ## Data Structures and Algorithm's Project
 
